@@ -22,9 +22,12 @@
 ffprofile="$HOME/.mozilla/firefox/*-release"
 
 #
-# The following two variables must be set before the script
+# The following three variables must be set before the script
 # is run. The script will not be able to execute unless the variables
 # are set.
+#
+# 'remotehost' is the IP address of the remote machine, and the user
+# that we wish to connect as.
 #
 # 'remotedir' is the full filepath of the directory to which the
 # bookmarks will be backed up. In the example below, the bookmarks are
@@ -36,15 +39,17 @@ ffprofile="$HOME/.mozilla/firefox/*-release"
 #
 # Example:
 #
-# remotedir="user@remote-machine:~/firefox_bookmarks_backup"
+# remotehost="user@remote-machine"
+# remotedir="~/firefox_bookmarks_backup"
 # port=22
 #
 
+remotehost=
 remotedir=
 port=
 
 if [ -z "$remotedir" ] || [ -z "$port" ]; then
-    printf "error: Remote directory and port must be set before this script can run.\n"
+    printf "error: Remote host, port and directory must be set before this script can run.\n"
     printf "Open this script in a text editor and follow the instructions in the comments.\n\n"
     exit 1
 fi
@@ -52,6 +57,7 @@ fi
 print_usage() {
     printf "usage: [-b] Backup bookmarks to remote machine.\n"
     printf "       [-r] Copy bookmarks from remote machine to local machine.\n"
+    printf "       [-s] Check if the bookmarks are backed up.\n"
     printf "       [-h] Print this help message.\n\n"
 }
 
@@ -65,11 +71,11 @@ elif (( $# > 1 )); then
     exit 1;
 fi
 
-while getopts 'brh' flag
+while getopts 'brsh' flag
 do
     case "${flag}" in
         b)
-            scp -Oq -P $port $ffprofile/places.sqlite $remotedir
+            scp -Oq -P $port $ffprofile/places.sqlite $remotehost:$remotedir
             if (( $? == 0 )); then
                 printf "Bookmarks have been backed up to the remote machine.\n\n"
             else
@@ -77,16 +83,28 @@ do
             fi
             ;;
         r)
-            scp -Oq -P $port $remotedir/places.sqlite $ffprofile
+            scp -Oq -P $port $remotehost:$remotedir/places.sqlite $ffprofile
             if (( $? == 0 )); then
                 printf "Bookmarks have been copied from the remote machine to the local machine.\n\n"
             else
                 printf "error: Could not copy bookmarks.\n\n"
             fi
             ;;
+        s)
+            shalocal=$(sha1sum $ffprofile/places.sqlite | head -c 40)
+            sharemote=$(ssh -p $port ssh://$remotehost "sha1sum $remotedir/places.sqlite" | head -c 40)
+
+            if [[ $shalocal == $sharemote ]]; then
+                printf "The bookmarks on the remote machine matches the bookmarks \n"
+                printf "on the local machine.\n\n"
+            else
+                printf "The bookmarks on the remote machine does not match the \n"
+                printf "bookmarks on the local machine.\n"
+                printf "Run 'fbb -b' to backup your bookmarks.\n\n"
+            fi
+            ;;
         h)
             print_usage
-            exit 0
             ;;
         *)
             print_usage
