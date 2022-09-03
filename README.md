@@ -16,6 +16,14 @@ Once the variables are set, and once the script has been placed in
 `~/.local/bin`, you can call the script at any time by typing `fbb` in
 your terminal.
 
+Note that the script requires sqlite3 to run. This helps us determine
+if the user has Firefox open or not, as the database will be locked
+when Firefox is running. This in turn prevents us from fucking up the
+database accidentally.
+
+Install sqlite3 on Fedora:
+`# dnf install sqlite`
+
 # Usage
 `fbb -h` - help - prints a help message with available commands.
 

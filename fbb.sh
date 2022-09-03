@@ -44,7 +44,7 @@ remotedir=
 port=
 
 if [ -z "$remotedir" ] || [ -z "$port" ]; then
-    printf "error: Remote directory and port must be set before this script can run.\n"
+    printf "Error: Remote directory and port must be set before this script can run.\n"
     printf "Open this script in a text editor and follow the instructions in the comments.\n\n"
     exit 1
 fi
@@ -56,11 +56,11 @@ print_usage() {
 }
 
 if (( $# == 0 )); then
-    printf "error: Expected a flag.\n"
+    printf "Error: Expected a flag.\n"
     print_usage
     exit 1;
 elif (( $# > 1 )); then
-    printf "error: Cannot take more than one flag.\n"
+    printf "Error: Cannot take more than one flag.\n"
     print_usage
     exit 1;
 fi
@@ -69,19 +69,31 @@ while getopts 'brh' flag
 do
     case "${flag}" in
         b)
-            scp -Oq -P $port $ffprofile/places.sqlite $remotedir
+            sqlite3 $ffprofile/places.sqlite ".backup /tmp/ffb"
             if (( $? == 0 )); then
-                printf "Bookmarks have been backed up to the remote machine.\n\n"
+                scp -Oq -P $port /tmp/ffb $remotedir/ffb
+                if (( $? == 0 )); then
+                    printf "Bookmarks have been backed up to the remote machine.\n\n"
+                    rm /tmp/ffb
+                else
+                    printf "Could not copy bookmarks.\n\n"                    
+                fi
             else
-                printf "error: Could not copy bookmarks.\n\n"
+                printf "Could not copy bookmarks.\n\n"
             fi
             ;;
         r)
-            scp -Oq -P $port $remotedir/places.sqlite $ffprofile
+            scp -Oq -P $port $remotedir/ffb /tmp/ffb
             if (( $? == 0 )); then
-                printf "Bookmarks have been copied from the remote machine to the local machine.\n\n"
+                sqlite3 $ffprofile/places.sqlite ".restore /tmp/ffb"
+                if (( $? == 0)); then
+                    printf "Bookmarks have been copied from the remote machine to the local machine.\n\n"
+                    rm /tmp/ffb
+                else
+                    printf "Could not copy bookmarks.\n\n"                    
+                fi
             else
-                printf "error: Could not copy bookmarks.\n\n"
+                printf "Could not copy bookmarks.\n\n"
             fi
             ;;
         h)
