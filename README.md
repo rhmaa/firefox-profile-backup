@@ -3,7 +3,7 @@ restore their Firefox bookmarks. The bookmarks are backed up to a
 remote machine over ssh.
 
 # Installation
-    git clone https://github.com/hevosmaa/firefox-bookmarks-backup.git
+    git clone https://github.com/rhmaa/firefox-bookmarks-backup.git
     chmod +x ~/firefox-bookmarks-backup/fbb.sh
     cp ~/firefox-bookmarks-backup/fbb.sh ~/.local/bin/fbb
     rm -rf ~/firefox-bookmarks-backup
