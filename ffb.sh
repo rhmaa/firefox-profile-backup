@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# This is a very simple script that copies Firefox bookmarks between a
+# This is a very simple script that copies a Firefox profile between a
 # local machine and a remote machine, over ssh.
 #
 
@@ -9,7 +9,7 @@
 # On a machine with a fresh Firefox install, and with only one
 # profile, the below variable does not have to be adjusted. If you
 # have more than one Firefox profile, you have to specify the full
-# path to the profile that has the bookmarks that you wish to back up.
+# path to the profile that you wish to back up.
 #
 # To find your profile, see the below instructions from Mozilla:
 # support.mozilla.org/en-US/kb/profiles-where-firefox-stores-user-data
@@ -22,13 +22,13 @@
 ffprofile="$HOME/.mozilla/firefox/*-release"
 
 #
-# The following two variables must be set before the script
-# is run. The script will not be able to execute unless the variables
-# are set.
+# The following two variables must be set before the script is
+# run. The script will not be able to execute unless the variables are
+# set.
 #
 # 'remotedir' is the full filepath of the directory to which the
-# bookmarks will be backed up. In the example below, the bookmarks are
-# being backed up to a directory called 'firefox_bookmarks_backup', in
+# profile will be backed up to. In the example below, the profile is
+# being backed up to a directory called 'firefox_profile_backup', in
 # the remote user's home folder.
 #
 # 'port' specifies the port through which ssh should make its
@@ -36,7 +36,7 @@ ffprofile="$HOME/.mozilla/firefox/*-release"
 #
 # Example:
 #
-# remotedir="user@remote-machine:~/firefox_bookmarks_backup"
+# remotedir="user@remote-machine:~/firefox_profile_backup"
 # port=22
 #
 
@@ -50,8 +50,8 @@ if [ -z "$remotedir" ] || [ -z "$port" ]; then
 fi
 
 print_usage() {
-    printf "usage: [-b] Backup bookmarks to remote machine.\n"
-    printf "       [-r] Copy bookmarks from remote machine to local machine.\n"
+    printf "Usage: [-b] Backup profile to remote machine.\n"
+    printf "       [-r] Copy profile from remote machine to local machine.\n"
     printf "       [-h] Print this help message.\n\n"
 }
 
@@ -73,13 +73,13 @@ do
             if (( $? == 0 )); then
                 scp -Oq -P $port /tmp/ffb $remotedir/ffb
                 if (( $? == 0 )); then
-                    printf "Bookmarks have been backed up to the remote machine.\n\n"
+                    printf "Profile has been backed up to the remote machine.\n\n"
                     rm /tmp/ffb
                 else
-                    printf "Could not copy bookmarks.\n\n"                    
+                    printf "Could not copy profile.\n\n"                    
                 fi
             else
-                printf "Could not copy bookmarks.\n\n"
+                printf "Could not copy profile.\n\n"
             fi
             ;;
         r)
@@ -87,13 +87,13 @@ do
             if (( $? == 0 )); then
                 sqlite3 $ffprofile/places.sqlite ".restore /tmp/ffb"
                 if (( $? == 0)); then
-                    printf "Bookmarks have been copied from the remote machine to the local machine.\n\n"
+                    printf "Profile has been copied from the remote machine to the local machine.\n\n"
                     rm /tmp/ffb
                 else
-                    printf "Could not copy bookmarks.\n\n"                    
+                    printf "Could not copy profile.\n\n"                    
                 fi
             else
-                printf "Could not copy bookmarks.\n\n"
+                printf "Could not copy profile.\n\n"
             fi
             ;;
         h)
